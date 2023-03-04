@@ -41,7 +41,6 @@ def configure_ports():
 def send_packet():
     pass
 
-
 def usage():
     txt = """\nWelcome! Usage can be seen below. If you
 wish stop a request, press ctrl + c"""
