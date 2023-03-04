@@ -3,7 +3,7 @@ from scapy.layers.inet import TCP, IP, Ether
 from scapy.all import Raw, send
 from scapy.volatile import RandShort
 import sys
-
+import random
 
 # --Globals--
 flood = False
@@ -12,29 +12,35 @@ flags = "R"
 ports = "0"
 target = ""
 
-
 def main():
+    #configure_ports()
+
     if scan:
         # Todo
-        print(scan)
+        port_scan()
     if flood:
         send_flood()
     # Todo
     # send_packet
 
-
 def send_flood():
     print("In flood mode, no replies will be shown")
-    print(flags)
     # Send packet in loop until ctrl+c is pressed
     send(IP(dst=target, ttl=64)
-         /TCP(sport=RandShort(), flags=flags, dport=int(ports))/Raw(b"X"*1024), loop=1, verbose=0)
+         /TCP(sport=RandShort(), flags=flags, dport=int(ports), seq=random.randint(200000000,500000000))
+         /Raw(b"X"*1024), loop=1, verbose=0)
     # Exit
-    sys.exit("Exiting!")
+    sys.exit(0)
 
+def port_scan():
+    pass
+
+def configure_ports():
+    pass
 
 def send_packet():
     pass
+
 
 def usage():
     txt = """\nWelcome! Usage can be seen below. If you
